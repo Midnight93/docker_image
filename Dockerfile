@@ -8,7 +8,7 @@ RUN mkdir -p /var/ocr4all/data && \
     mkdir -p /var/ocr4all/models/default && \
     mkdir -p /var/ocr4all/models/custom && \
     chmod -R g+w /var/ocr4all && \
-    chgrp -R tomcat8 /var/ocr4all
+    chgrp -R tomcat /var/ocr4all
 
 # Make pretrained CALAMARI models available to the project environment
 ARG CALAMARI_MODELS_VERSION="1.0"
@@ -30,8 +30,8 @@ RUN cd /opt && git clone -b master https://gitlab2.informatik.uni-wuerzburg.de/c
 
 # Install calamari, make all calamari scripts available to JAVA environment
 ## calamari from source with version: v1.0.5
-ARG CALAMARI_COMMIT="d293871c40c105f38e5528944fc39f04eb7649a7"
-RUN cd /opt && git clone -b feature/pageXML_word_level https://github.com/maxnth/calamari.git && \
+ARG CALAMARI_COMMIT="715ebcdd8672c72c39a533a49f01d4eb1b36a760"
+RUN cd /opt && git clone https://github.com/Calamari-OCR/calamari && \
     cd calamari && git reset --hard ${CALAMARI_COMMIT} && \
     python3 setup.py install && \
     for CALAMARI_SCRIPT in `cd /usr/local/bin && ls calamari-*`; \
@@ -47,27 +47,27 @@ RUN cd /opt && git clone -b master https://github.com/OCR4all/OCR4all_helper-scr
 # Download maven project
 ENV OCR4ALL_VERSION="0.4.0" \
     LAREX_VERSION="0.4-RC1"
-RUN cd /var/lib/tomcat8/webapps && \
+RUN cd /var/lib/tomcat9/webapps && \
     wget $ARTIFACTORY_URL/ocr4all/$OCR4ALL_VERSION/ocr4all-$OCR4ALL_VERSION.war -O ocr4all.war && \
     wget $ARTIFACTORY_URL/Larex/$LAREX_VERSION/Larex-$LAREX_VERSION.war -O Larex.war
 
 # Add webapps to tomcat
-RUN ln -s /var/lib/tomcat8/common $CATALINA_HOME/common && \
-    ln -s /var/lib/tomcat8/server $CATALINA_HOME/server && \
-    ln -s /var/lib/tomcat8/shared $CATALINA_HOME/shared && \
-    ln -s /etc/tomcat8 $CATALINA_HOME/conf && \
+RUN ln -s /var/lib/tomcat9/common $CATALINA_HOME/common && \
+    ln -s /var/lib/tomcat9/server $CATALINA_HOME/server && \
+    ln -s /var/lib/tomcat9/shared $CATALINA_HOME/shared && \
+    ln -s /etc/tomcat9 $CATALINA_HOME/conf && \
     mkdir $CATALINA_HOME/temp && \
     mkdir $CATALINA_HOME/webapps && \
     mkdir $CATALINA_HOME/logs && \
-    ln -s /var/lib/tomcat8/webapps/ocr4all.war $CATALINA_HOME/webapps && \
-    ln -s /var/lib/tomcat8/webapps/Larex.war $CATALINA_HOME/webapps
+    ln -s /var/lib/tomcat9/webapps/ocr4all.war $CATALINA_HOME/webapps && \
+    ln -s /var/lib/tomcat9/webapps/Larex.war $CATALINA_HOME/webapps
 
 
 # Put supervisor process manager configuration to container
 COPY supervisord.conf .
 
 # Create index.html for calling url without tool url part!
-COPY index.html /usr/share/tomcat8/webapps/ROOT/index.html
+COPY index.html /usr/share/tomcat9/webapps/ROOT/index.html
 
 # Copy larex.config
 COPY larex.config /larex.config
